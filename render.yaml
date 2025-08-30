@@ -1,13 +1,11 @@
 services:
   - type: worker
-    name: tarjimon-bot
+    name: translator-bot
     env: python
-    region: frankfurt
-    plan: free
-    buildCommand: |
-      pip install -r requirements.txt
-    startCommand: |
-      python main.py
+    region: frankfurt   # Render server joylashuvi (EU uchun)
+    plan: free          # Bepul tarif
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
+      - key: BOT_TOKEN
+        sync: false   # Tokenni Render dashboard’da o‘zingiz qo‘shasiz
