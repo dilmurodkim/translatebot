@@ -1,6 +1,5 @@
 import logging
 import os
-import asyncio
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
@@ -9,8 +8,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from googletrans import Translator
 from dotenv import load_dotenv
 from aiohttp import web
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
-# --- .env dan yuklash ---
+# --- .env yuklash ---
 load_dotenv()
 API_TOKEN = os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # masalan: https://your-app.onrender.com/webhook
@@ -30,11 +30,10 @@ bot = Bot(
 )
 dp = Dispatcher()
 
-# Google Translator
 translator = Translator()
 user_texts = {}
 
-# --- Klaviatura yaratish ---
+# --- Klaviatura ---
 def lang_keyboard():
     kb = InlineKeyboardBuilder()
     kb.button(text="🇺🇿 O‘zbek", callback_data="lang_uz")
@@ -52,7 +51,7 @@ async def start_cmd(message: Message):
         "✍️ Matn yuboring, keyin tarjima qilmoqchi bo‘lgan tilni tanlang."
     )
 
-# --- Foydalanuvchi matn yuborganda ---
+# --- Foydalanuvchi matn yuborsa ---
 @dp.message()
 async def get_text(message: Message):
     user_texts[message.from_user.id] = message.text.strip()
@@ -62,7 +61,7 @@ async def get_text(message: Message):
         reply_markup=lang_keyboard()
     )
 
-# --- Tarjima qilish ---
+# --- Tarjima ---
 @dp.callback_query(F.data.startswith("lang_"))
 async def translate_text(call: CallbackQuery):
     user_id = call.from_user.id
@@ -87,17 +86,13 @@ async def translate_text(call: CallbackQuery):
 async def on_startup(app):
     await bot.set_webhook(WEBHOOK_URL)
 
-async def on_shutdown(app):
-    logging.warning("Bot o‘chmoqda...")
-    await bot.delete_webhook()
-    await bot.session.close()
-
-async def main():
+def main():
     app = web.Application()
-    dp.startup.register(on_startup)
-    dp.shutdown.register(on_shutdown)
-    app.router.add_post("/webhook", dp.webhook_handler)
-    return app
+    # Dispatcher uchun handler
+    SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="/webhook")
+    setup_application(app, dp, bot=bot)
+    app.on_startup.append(on_startup)
+    web.run_app(app, host=WEBAPP_HOST, port=WEBAPP_PORT)
 
 if __name__ == "__main__":
-    web.run_app(main(), host=WEBAPP_HOST, port=WEBAPP_PORT)
+    main()
