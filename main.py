@@ -9,9 +9,12 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from googletrans import Translator
 from dotenv import load_dotenv
 
-# .env fayldagi tokenlarni yuklash
+# .env fayldan token yuklash
 load_dotenv()
 API_TOKEN = os.getenv("BOT_TOKEN")
+
+if not API_TOKEN:
+    raise ValueError("❌ BOT_TOKEN .env faylida topilmadi!")
 
 # Logging
 logging.basicConfig(level=logging.INFO)
@@ -23,13 +26,13 @@ bot = Bot(
 )
 dp = Dispatcher()
 
-# Tarjimon
+# Google Translator obyekti
 translator = Translator()
 
-# Tanlangan matnni vaqtincha saqlash
+# User matnlarini vaqtincha saqlash
 user_texts = {}
 
-# --- Klaviatura yaratish funksiyasi ---
+# --- Klaviatura yaratish ---
 def lang_keyboard():
     kb = InlineKeyboardBuilder()
     kb.button(text="🇺🇿 O‘zbek", callback_data="lang_uz")
@@ -47,17 +50,17 @@ async def start_cmd(message: Message):
         "✍️ Matn yuboring, keyin tarjima qilmoqchi bo‘lgan tilni tanlang."
     )
 
-# --- Oddiy matnni qabul qilish ---
+# --- Foydalanuvchi matn yuborganda ---
 @dp.message()
 async def get_text(message: Message):
-    user_texts[message.from_user.id] = message.text
+    user_texts[message.from_user.id] = message.text.strip()
     await message.answer(
         f"📥 Siz yubordingiz:\n`{message.text}`\n\n"
         "🌍 Qaysi tilga tarjima qilay?",
         reply_markup=lang_keyboard()
     )
 
-# --- Til tugmalari bosilganda ---
+# --- Til tanlanganda tarjima ---
 @dp.callback_query(F.data.startswith("lang_"))
 async def translate_text(call: CallbackQuery):
     user_id = call.from_user.id
@@ -72,12 +75,15 @@ async def translate_text(call: CallbackQuery):
         translated = translator.translate(text, dest=lang)
         await call.message.edit_text(
             f"📥 *Matn:* `{text}`\n\n"
-            f"📤 *Tarjima ({lang}):* \n👉 *{translated.text}*"
+            f"📤 *Tarjima ({lang}):*\n👉 *{translated.text}*"
         )
-    except Exception:
+    except Exception as e:
+        logging.error(f"Tarjima xatolik: {e}")
         await call.message.edit_text("❌ Tarjima qilishda xatolik yuz berdi.")
 
+# --- Botni ishga tushirish ---
 async def main():
+    logging.info("🤖 Bot ishga tushdi...")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
