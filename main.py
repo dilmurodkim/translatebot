@@ -1,6 +1,6 @@
 import logging
-import asyncio
 import os
+import asyncio
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
@@ -8,10 +8,14 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from googletrans import Translator
 from dotenv import load_dotenv
+from aiohttp import web
 
-# .env fayldan token yuklash
+# --- .env dan yuklash ---
 load_dotenv()
 API_TOKEN = os.getenv("BOT_TOKEN")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # masalan: https://your-app.onrender.com/webhook
+WEBAPP_HOST = "0.0.0.0"
+WEBAPP_PORT = int(os.getenv("PORT", 8080))
 
 if not API_TOKEN:
     raise ValueError("❌ BOT_TOKEN .env faylida topilmadi!")
@@ -26,10 +30,8 @@ bot = Bot(
 )
 dp = Dispatcher()
 
-# Google Translator obyekti
+# Google Translator
 translator = Translator()
-
-# User matnlarini vaqtincha saqlash
 user_texts = {}
 
 # --- Klaviatura yaratish ---
@@ -42,7 +44,7 @@ def lang_keyboard():
     kb.adjust(2)
     return kb.as_markup()
 
-# --- /start komandasi ---
+# --- /start ---
 @dp.message(CommandStart())
 async def start_cmd(message: Message):
     await message.answer(
@@ -60,11 +62,11 @@ async def get_text(message: Message):
         reply_markup=lang_keyboard()
     )
 
-# --- Til tanlanganda tarjima ---
+# --- Tarjima qilish ---
 @dp.callback_query(F.data.startswith("lang_"))
 async def translate_text(call: CallbackQuery):
     user_id = call.from_user.id
-    lang = call.data.split("_")[1]   # masalan lang_en → "en"
+    lang = call.data.split("_")[1]
     text = user_texts.get(user_id)
 
     if not text:
@@ -81,10 +83,21 @@ async def translate_text(call: CallbackQuery):
         logging.error(f"Tarjima xatolik: {e}")
         await call.message.edit_text("❌ Tarjima qilishda xatolik yuz berdi.")
 
-# --- Botni ishga tushirish ---
+# --- Webhook server ---
+async def on_startup(app):
+    await bot.set_webhook(WEBHOOK_URL)
+
+async def on_shutdown(app):
+    logging.warning("Bot o‘chmoqda...")
+    await bot.delete_webhook()
+    await bot.session.close()
+
 async def main():
-    logging.info("🤖 Bot ishga tushdi...")
-    await dp.start_polling(bot)
+    app = web.Application()
+    dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
+    app.router.add_post("/webhook", dp.webhook_handler)
+    return app
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    web.run_app(main(), host=WEBAPP_HOST, port=WEBAPP_PORT)
