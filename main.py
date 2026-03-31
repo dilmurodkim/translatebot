@@ -5,7 +5,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart
 from aiogram.client.default import DefaultBotProperties
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 from dotenv import load_dotenv
 from aiohttp import web
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
@@ -30,7 +30,7 @@ bot = Bot(
 )
 dp = Dispatcher()
 
-translator = Translator()
+
 user_texts = {}
 
 # --- Klaviatura ---
@@ -73,10 +73,10 @@ async def translate_text(call: CallbackQuery):
         return
 
     try:
-        translated = translator.translate(text, dest=lang)
+        translated = GoogleTranslator(source='auto', target=lang).translate(text)
         await call.message.edit_text(
             f"📥 *Matn:* `{text}`\n\n"
-            f"📤 *Tarjima ({lang}):*\n👉 *{translated.text}*"
+            f"📤 *Tarjima ({lang}):*\n👉 *{translated}*"
         )
     except Exception as e:
         logging.error(f"Tarjima xatolik: {e}")
