@@ -52,13 +52,23 @@ async def start_cmd(message: Message):
     )
 
 # --- Foydalanuvchi matn yuborsa ---
-@dp.message()
-async def get_text(message: Message):
-    user_texts[message.from_user.id] = message.text.strip()
+@dp.message(CommandStart())
+async def start_cmd(message: Message):
     await message.answer(
-        f"📥 Siz yubordingiz:\n`{message.text}`\n\n"
-        "🌍 Qaysi tilga tarjima qilay?",
-        reply_markup=lang_keyboard()
+        "👋 *Salom!* Xush kelibsiz 😊\n\n"
+        "🌐 Men *Tarjimon Bot*man — siz yuborgan matnni turli tillarga tarjima qilib beraman.\n\n"
+        "📌 *Qanday ishlaydi?*\n"
+        "1️⃣ Matn yuboring ✍️\n"
+        "2️⃣ Kerakli tilni tanlang 🌍\n"
+        "3️⃣ Tarjimani oling 🚀\n\n"
+        "🌎 Mavjud tillar:\n"
+        "🇺🇿 O‘zbek | 🇬🇧 Ingliz | 🇰🇷 Koreys | 🇷🇺 Rus\n\n"
+        "⚠️ *Eslatma:* Bot hozir test rejimida ishlamoqda.\n"
+        "Ba’zi hollarda xatoliklar yuz berishi mumkin.\n\n"
+        "🔄 Agar muammo yuz bersa, iltimos qayta urinib ko‘ring.\n"
+        "📩 Xatoliklar yoki takliflar bo‘lsa: *@dilmurodbe_05* ga yozishingiz mumkin\n\n"
+        "🙏 Tushunganingiz uchun rahmat!\n\n"
+        "✍️ Endi matn yuboring!"
     )
 
 # --- Tarjima ---
