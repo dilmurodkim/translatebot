@@ -43,10 +43,21 @@ def lang_keyboard():
 @dp.message(CommandStart())
 async def start_cmd(message: Message):
     await message.answer(
-        "👋 *Salom!* Men *Tarjimon Bot*man 🌐\n\n"
-        "✍️ Matn yuboring, keyin tarjima qilmoqchi bo‘lgan tilni tanlang."
+        "👋 *Salom!* Xush kelibsiz 😊\n\n"
+        "🌐 Men *Tarjimon Bot*man — siz yuborgan matnni turli tillarga tarjima qilib beraman.\n\n"
+        "📌 *Qanday ishlaydi?*\n"
+        "1️⃣ Matn yuboring ✍️\n"
+        "2️⃣ Kerakli tilni tanlang 🌍\n"
+        "3️⃣ Tarjimani oling 🚀\n\n"
+        "🌎 Mavjud tillar:\n"
+        "🇺🇿 O‘zbek | 🇬🇧 Ingliz | 🇰🇷 Koreys | 🇷🇺 Rus\n\n"
+        "⚠️ *Eslatma:* Bot hozir test rejimida ishlamoqda.\n"
+        "Ba’zi hollarda xatoliklar yuz berishi mumkin.\n\n"
+        "🔄 Agar muammo yuz bersa, iltimos qayta urinib ko‘ring.\n"
+        "📩 Xatoliklar yoki takliflar bo‘lsa: *@dilmurodbe_05* ga yozishingiz mumkin\n\n"
+        "🙏 Tushunganingiz uchun rahmat!\n\n"
+        "✍️ Endi matn yuboring!"
     )
-
 # --- Oddiy matnni qabul qilish ---
 @dp.message()
 async def get_text(message: Message):
